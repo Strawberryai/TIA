@@ -98,12 +98,12 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     
     print("---- Depth First Search")
-    print(problem.getStartState())
-    print(problem.getSuccessors(problem.getStartState()))
-    print(problem.getSuccessors((4, 5)))
-    print(problem.isGoalState((1,1)))
-
-    porVisitar = [(problem.getStartState(), [])] #Stack -> Inicializado con la posición inicial y la lista de movimientos hasta el estado
+    #print(problem.getStartState())
+    #print(problem.getSuccessors(problem.getStartState()))
+    #print(problem.getSuccessors((4, 5)))
+    #print(problem.isGoalState((1,1)))
+    #porVisitar = [(problem.getStartState(), [])]
+    porVisitar = util.Stack([(problem.getStartState(), [])]) #Stack -> Inicializado con la posición inicial y la lista de movimientos hasta el estado
     visitados = set() # Set
     nodoFinal = None
 
@@ -126,7 +126,7 @@ def depthFirstSearch(problem):
                     camino = nodoAct[1].copy()
                     camino.append(s[1])
                     pos = s[0]
-                    porVisitar.append((pos, camino))
+                    porVisitar.push((pos, camino))
 
     if nodoFinal is None:
         # No hemos encontrado un camino que lleve al objetivo
@@ -140,14 +140,77 @@ def depthFirstSearch(problem):
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Es igual que el DFS pero en lugar de utilizar un stack usamos una cola
+    # Solo cambia el nodo que miramos primero
+    porVisitar = util.Queue([(problem.getStartState(), [])]) #Cola -> Inicializado con la posición inicial y la lista de movimientos hasta el estado
+    visitados = set() # Set
+    nodoFinal = None
+
+    while nodoFinal is None and not porVisitar.isEmpty():
+        nodoAct = porVisitar.pop() # Visitamos el siguiente nodo
+
+        if nodoAct[0] not in visitados:
+            # No habiamos visitado anteriormente este nodo y registramos la posición actual como visitada
+            visitados.add(nodoAct[0])
+
+            if problem.isGoalState(nodoAct[0]):
+                # Hemos encontrado el camino
+                nodoFinal = nodoAct
+            else:
+                # Aun pueden quedar estados por expandir
+                sucesores = problem.getSuccessors(nodoAct[0])
+
+                for s in sucesores:
+                    # Copiamos el camino del padre y añadimos la acción para llegar al nuevo estado
+                    camino = nodoAct[1].copy()
+                    camino.append(s[1])
+                    pos = s[0]
+                    porVisitar.push((pos, camino))
+
+    if nodoFinal is None:
+        # No hemos encontrado un camino que lleve al objetivo
+        return []
+    
+    # Devolvemos el camino hasta el objetivo
+    return nodoFinal[1]
 
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    porVisitar = util.PriorityQueue() #Cola de prioridad -> Inicializado con la posición inicial y la lista de movimientos hasta el estado
+    porVisitar.push((problem.getStartState(), [], 0), 0)
+    visitados = set() # Set
+    nodoFinal = None
+
+    while nodoFinal is None and not porVisitar.isEmpty():
+        nodoAct = porVisitar.pop() # Visitamos el siguiente nodo
+
+        if nodoAct[0] not in visitados:
+            # No habiamos visitado anteriormente este nodo y registramos la posición actual como visitada
+            visitados.add(nodoAct[0])
+
+            if problem.isGoalState(nodoAct[0]):
+                # Hemos encontrado el camino
+                nodoFinal = nodoAct
+            else:
+                # Aun pueden quedar estados por expandir
+                sucesores = problem.getSuccessors(nodoAct[0])
+
+                for s in sucesores:
+                    # Copiamos el camino del padre y añadimos la acción para llegar al nuevo estado
+                    pos = s[0]
+                    camino = nodoAct[1].copy()
+                    camino.append(s[1])
+                    coste = nodoAct[2] + s[2]
+                    porVisitar.push((pos, camino, coste), coste)
+
+    if nodoFinal is None:
+        # No hemos encontrado un camino que lleve al objetivo
+        return []
+    
+    # Devolvemos el camino hasta el objetivo
+    return nodoFinal[1]
 
 
 def nullHeuristic(state, problem=None):
@@ -161,7 +224,50 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    # INICIALIZACIÓN
+    porVisitar = util.PriorityQueue() #Cola de prioridad -> Inicializado con la posición inicial y la lista de movimientos hasta el estado
+    posInicial = problem.getStartState()
+    costeInicial = heuristic(posInicial, problem)
+    porVisitar.push((posInicial, [], costeInicial), costeInicial)
+    visitados = set() # Set
+    nodoFinal = None
+
+    # ALGORITMO
+    while nodoFinal is None and not porVisitar.isEmpty():
+        nodoAct = porVisitar.pop() # Visitamos el siguiente nodo
+
+        if nodoAct[0] not in visitados:
+            # No habiamos visitado anteriormente este nodo y registramos la posición actual como visitada
+            visitados.add(nodoAct[0])
+            # El coste de llegar hasta el nodo actual es el coste acumulado menos el heurístico del nodo actual. 
+            # Antes se sumó el heurístico, por lo que para saber el coste hay que restarlo
+            costeNodoAct = nodoAct[2] - heuristic(nodoAct[0], problem) 
+
+            if problem.isGoalState(nodoAct[0]):
+                # Hemos encontrado el camino
+                nodoFinal = nodoAct
+            else:
+                # Aun pueden quedar estados por expandir
+                sucesores = problem.getSuccessors(nodoAct[0])
+
+                for s in sucesores:
+                    # Copiamos el camino del padre y añadimos la acción para llegar al nuevo estado
+                    pos = s[0]
+                    camino = nodoAct[1].copy()
+                    camino.append(s[1])
+                    
+                    # El coste del sucesor va a ser el coste acumulado hasta el más el heurístico del sucesor
+                    coste =  costeNodoAct + s[2] + heuristic(pos, problem) 
+                    porVisitar.push((pos, camino, coste), coste)
+
+    # RETURN
+    if nodoFinal is None:
+        # No hemos encontrado un camino que lleve al objetivo
+        return []
+    
+    # Devolvemos el camino hasta el objetivo
+    return nodoFinal[1]
 
 
 # Abbreviations

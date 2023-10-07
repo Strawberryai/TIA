@@ -182,6 +182,9 @@ class Stack:
     def __contains__(self, item):
         return item in self.stack
 
+    def __str__(self):
+        return ','.join(str(element) for element in self.stack)
+
 
 class Queue:
     """A container with a first-in-first-out (FIFO) queuing policy."""
