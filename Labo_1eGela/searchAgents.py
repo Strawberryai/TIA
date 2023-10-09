@@ -300,22 +300,42 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0  # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
+        
         "*** YOUR CODE HERE ***"
+        
+        # El estado está definido por la poosición del pac-man y por las esquinas que no ha visitado
+        self.startState = (self.startingPosition, self.getListaCornersNoVisitados(self.corners, self.startingPosition))
 
+    def getListaCornersNoVisitados(self, lista_corners, posicion):
+        # Recibe la lista de los corners y la posicion del pac-man
+        # Devuelve la lista de los corners no visitados
+        cornersNoVisitados = []
+        for corner in lista_corners:
+            if posicion != corner:
+                cornersNoVisitados.append(corner)
+                
+        return cornersNoVisitados
+    
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        print(self.startState)
+        return self.startState
+        
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        
+        # El pac-man ha visitado todas las esquinas?¿
+        pos, cornersNoVisitados = state
+        return len(cornersNoVisitados) == 0
+        
 
     def getSuccessors(self, state):
         """
@@ -327,7 +347,6 @@ class CornersProblem(search.SearchProblem):
             state, 'action' is the action required to get there, and 'stepCost'
             is the incremental cost of expanding to that successor
         """
-
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
             # Add a successor state to the successor list if the action is legal
@@ -338,6 +357,19 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             "*** YOUR CODE HERE ***"
+            posicion, cornersNoVisitados = state
+            
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(posicion[0] + dx), int(posicion[1] + dy)
+            
+            if not self.walls[nextx][nexty]:
+                newPosicion = (nextx, nexty)
+                newCornersNoVisitados = self.getListaCornersNoVisitados(cornersNoVisitados, newPosicion)
+                newState = (newPosicion, newCornersNoVisitados)
+                
+                cost = 1 # Coste uniforme provisional
+                
+                successors.append((newState, action, cost))
 
         self._expanded += 1  # DO NOT CHANGE
         return successors
