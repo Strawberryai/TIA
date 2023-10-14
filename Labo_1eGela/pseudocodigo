@@ -1,0 +1,44 @@
+
+def get_lista_sin_elm(elm, lista):
+    lista_nueva = []
+    for x in lista:
+        if x != elm:
+            lista_nueva.append(x)
+    return lista_nueva
+
+def get_coste_circuito(actual, esquinas_por_cal):
+    coste = 0
+    while len(esquinas_por_cal) > 0:
+        dist, esquina = get_min(actual, esquinas_por_cal)
+        esquinas_por_cal = get_lista_sin_elm(esquinas_por_cal, esquina)
+        coste += dist
+        actual = esquina
+    return coste
+
+costes = []
+pos = state[0]
+esquinas_no_visitadas = state[1]
+
+for e in esquinas_no_visitadas:
+    coste = util.manhattanDistance(pos, e)
+    coste += get_coste_circuito(e, get_lista_sin_elm(e, esquinas_no_visitadas))
+    costes.append(coste)
+
+return min(costes)
+
+
+
+
+############################################
+#A                                        B#
+#                                          #
+#                                          #
+#                                          #
+#            P                             #
+#                                          #
+#C              D###########################
+############################################
+    
+
+
+

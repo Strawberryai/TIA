@@ -405,17 +405,53 @@ def cornersHeuristic(state, problem):
     walls = problem.walls  # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+    def get_lista_sin_elm(elm, lista):  
+        lista_nueva = []
+        for x in lista:
+            if x != elm:
+                lista_nueva.append(x)
+        return lista_nueva
+    
+    def get_min(actual, esquinas):
+        esq_min = None
+        dist = None
+        
+        for e in esquinas:
+            act_dist = util.manhattanDistance(actual, e)
+            
+            if dist is None:
+                esq_min = e
+                dist = act_dist
+            elif act_dist < dist:
+                esq_min = e
+                dist = act_dist
+        
+        return dist, esq_min
+    
+    def get_coste_circuito(actual, esquinas_por_cal):
+        coste = 0
+
+        while len(esquinas_por_cal) > 0:
+            dist, esquina = get_min(actual, esquinas_por_cal)
+            esquinas_por_cal = get_lista_sin_elm(esquina, esquinas_por_cal)
+            coste += dist
+            actual = esquina
+
+        return coste
+
+    costes = []
     pos = state[0]
-    cornersNoVisitados = state[1]
-    
-    heuristicos = []
-    for corner in cornersNoVisitados:
-        h = util.manhattanDistance(pos, corner)
-        heuristicos.append(h)
-    
+    esquinas_no_visitadas = state[1]
 
+    for e in esquinas_no_visitadas:
+        coste = util.manhattanDistance(pos, e)
+        coste += get_coste_circuito(e, get_lista_sin_elm(e, esquinas_no_visitadas))
 
-    return 0
+        costes.append(coste)
+    
+    if len(costes) == 0:
+        return 0
+    return min(costes)
 
 
 class AStarCornersAgent(SearchAgent):
