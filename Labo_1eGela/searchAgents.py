@@ -554,6 +554,13 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+    
+    
+    for food in foodGrid:
+        if food is True:
+            print(food)
+    
+    
     return 0
 
 
