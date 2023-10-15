@@ -554,14 +554,54 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+
+    def get_lista_sin_elm(elm, lista):  
+        lista_nueva = []
+        for x in lista:
+            if x != elm:
+                lista_nueva.append(x)
+        return lista_nueva
     
+    def get_min(actual, esquinas):
+        esq_min = None
+        dist = None
+        
+        for e in esquinas:
+            act_dist = util.manhattanDistance(actual, e)
+            
+            if dist is None:
+                esq_min = e
+                dist = act_dist
+            elif act_dist < dist:
+                esq_min = e
+                dist = act_dist
+        
+        return dist, esq_min
     
-    for food in foodGrid:
-        if food is True:
-            print(food)
+    def get_coste_circuito(actual, esquinas_por_cal):
+        coste = 0
+
+        while len(esquinas_por_cal) > 0:
+            dist, esquina = get_min(actual, esquinas_por_cal)
+            esquinas_por_cal = get_lista_sin_elm(esquina, esquinas_por_cal)
+            coste += dist
+            actual = esquina
+
+        return coste
+
+    foodList = foodGrid.asList()
+    dists = []
+    esquinas_no_visitadas = state[1]
+
+    for food in foodList:
+        dist = util.manhattanDistance(position, food)
+        dist += get_coste_circuito(food, get_lista_sin_elm(food, foodList))
+
+        dists.append(dist)
     
-    
-    return 0
+    if len(dists) == 0:
+        return 0
+    return min(dists)
     
 
 class ClosestDotSearchAgent(SearchAgent):
