@@ -205,12 +205,76 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        
-        
-        
-        
-        util.raiseNotDefined()
 
+        def min_value(game_state, agentIndex, depth, alpha, beta):
+          # Comprobar si es un estado final
+          if depth == 0 or game_state.isWin() or game_state.isLose():
+            return self.evaluationFunction(game_state), None
+          
+          # Inicialización
+          value = float("inf")
+          optAction = None
+          
+          # Algoritmo
+          for action in game_state.getLegalActions(agentIndex):
+            if agentIndex == game_state.getNumAgents() -1:
+              # Se trata del Pac-Man -> cambiamos a maximizar
+              v, a = max_value(game_state.generateSuccessor(agentIndex, action), 0, depth -1, alpha, beta)
+              
+            else:
+              # Se trata de un fantasma -> seguimoms minimizando
+              v, a = min_value(game_state.generateSuccessor(agentIndex, action), agentIndex+1, depth, alpha, beta)
+
+            if v < value:
+              value, optAction = v, action
+          
+            if value < alpha:
+              return value, optAction
+            
+            beta = min(beta, value)
+          
+          return value, optAction
+        
+        
+        def max_value(game_state, agentIndex, depth, alpha, beta):
+          # Comprobar si es un estado final
+          if depth == 0 or game_state.isWin() or game_state.isLose():
+            return self.evaluationFunction(game_state), None
+          
+          # Inicialización
+          value = -float("inf")
+          optAction = None
+          
+          # Algoritmo
+          for action in game_state.getLegalActions(agentIndex):
+            v, a = min_value(game_state.generateSuccessor(agentIndex, action), agentIndex+1, depth, alpha, beta)
+            
+            if v > value:
+              value, optAction = v, action
+            
+            if value > beta:
+              return value, optAction
+            
+            alpha = max(alpha, v)
+          
+          return value, optAction
+          
+          
+          alpha = -float("inf")
+          beta = float("inf")
+          
+          value, optAction = max_value(game_state, 0, self.depth, alpha, beta)
+          
+          return value, optAction
+        
+        
+        # LLamada principal
+        alpha = -float("inf")
+        beta = float("inf")
+        
+        value, optAction = max_value(game_state, 0, self.depth, alpha, beta)
+        
+        return optAction
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
