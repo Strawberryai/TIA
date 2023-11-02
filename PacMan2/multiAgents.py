@@ -283,14 +283,56 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
     """
 
     def getAction(self, gameState):
-        """
-        Returns the expectimax action using self.depth and self.evaluationFunction
+      """
+      Returns the expectimax action using self.depth and self.evaluationFunction
+      All ghosts should be modeled as choosing uniformly at random from their
+      legal moves.
+      """
+      "*** YOUR CODE HERE ***"
+      
+      def exp_value(game_state, agentIndex, depth):
+        # Comprobar si es un estado final
+        if depth == 0 or game_state.isWin() or game_state.isLose():
+          return self.evaluationFunction(game_state)
 
-        All ghosts should be modeled as choosing uniformly at random from their
-        legal moves.
-        """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        value = 0
+        actions = game_state.getLegalActions(agentIndex)
+        
+        for action in actions:
+          if agentIndex == game_state.getNumAgents() -1:
+            # Se trata del Pac-Man -> cambiamos a maximizar
+            v, a = max_value(game_state.generateSuccessor(agentIndex, action), 0, depth -1)
+      
+          else:
+            # Se trata de un fantasma -> seguimoms minimizando
+            v = exp_value(game_state.generateSuccessor(agentIndex, action), agentIndex+1, depth)
+          
+          p = 1 / len(actions) # La probabilidad es uniforme
+          value += p * v
+        
+        return  value
+        
+      def max_value(game_state, agentIndex, depth):
+        # Comprobar si es un estado final
+        if depth == 0 or game_state.isWin() or game_state.isLose():
+          return self.evaluationFunction(game_state), None
+        
+        # Inicialización
+        value = -float("inf")
+        optAction = None
+        
+        # Algoritmo
+        for action in game_state.getLegalActions(agentIndex):
+          v = exp_value(game_state.generateSuccessor(agentIndex, action), agentIndex+1, depth)
+          
+          if v > value:
+            value, optAction = v, action
+        
+        return value, optAction
+        
+      value, optAction = max_value(gameState, 0, self.depth)
+      
+      return optAction
 
 
 def betterEvaluationFunction(currentGameState):
@@ -301,12 +343,50 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     pacman_pos = currentGameState.getPacmanPosition()
-    newFood = currentGameState.getFood()
+    newFood = currentGameState.getFood().asList()
     newGhostStates = currentGameState.getGhostStates()
     newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-
+    capsules = currentGameState.getCapsules()    
+    
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Devolver casos finales
+    if currentGameState.isWin():
+      return float("inf")
+    if currentGameState.isLose():
+      return float("-inf")
+    if len(newFood) == 0:
+      return float("inf")
+    
+    # Calcular la distancia más corta a una comida    
+    min_distancia_comida = min([manhattanDistance(pacman_pos, food) for food in newFood])
+
+    # Calcular la distancia más corta a un fantasma asustado
+    fantasmas_austados  = [g for i, g in enumerate(newGhostStates) if newScaredTimes[i] > 0]
+    min_dist_asust = float("inf")
+    if len(fantasmas_austados) > 0:
+      min_dist_asust = min([manhattanDistance(pacman_pos, g.getPosition()) for g in fantasmas_austados])
+    
+    
+    # Calcular la distancia más corta a un fantasma no asustado
+    fantasmas_no_aust   = [g for g in newGhostStates if g not in fantasmas_austados]
+    min_dist_no_asust = float("inf")
+    if len(fantasmas_no_aust) > 0:
+      min_dist_asust = min([manhattanDistance(pacman_pos, g.getPosition()) for g in fantasmas_no_aust])
+    
+    # Consideramos el número de capsulas
+    num_capsulas = len(capsules)
+
+    # Consideramos la puntuación actual
+    puntuacion = currentGameState.getScore()
+    
+    # Finalmente, valoramos el estado
+    evaluation = puntuacion
+    evaluation += 1 / (min_distancia_comida +1)   # +1 para evitar divisiones por 0
+    evaluation += 1 / (min_dist_asust +1)         # +1 para evitar divisiones por 0
+    evaluation -= 1 / (min_dist_no_asust +1)      # +1 para evitar divisiones por 0
+    evaluation += num_capsulas
+    
+    return evaluation
 
 
 # Abbreviation
