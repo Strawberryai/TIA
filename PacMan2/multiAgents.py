@@ -353,7 +353,7 @@ def betterEvaluationFunction(currentGameState):
     if currentGameState.isWin():
       return float("inf")
     if currentGameState.isLose():
-      return float("-inf")
+      return -float("inf")
     if len(newFood) == 0:
       return float("inf")
     
@@ -362,14 +362,14 @@ def betterEvaluationFunction(currentGameState):
 
     # Calcular la distancia más corta a un fantasma asustado
     fantasmas_austados  = [g for i, g in enumerate(newGhostStates) if newScaredTimes[i] > 0]
-    min_dist_asust = float("inf")
+    min_dist_asust = 0
     if len(fantasmas_austados) > 0:
       min_dist_asust = min([manhattanDistance(pacman_pos, g.getPosition()) for g in fantasmas_austados])
     
     
     # Calcular la distancia más corta a un fantasma no asustado
     fantasmas_no_aust   = [g for g in newGhostStates if g not in fantasmas_austados]
-    min_dist_no_asust = float("inf")
+    min_dist_no_asust = 0
     if len(fantasmas_no_aust) > 0:
       min_dist_asust = min([manhattanDistance(pacman_pos, g.getPosition()) for g in fantasmas_no_aust])
     
@@ -380,11 +380,12 @@ def betterEvaluationFunction(currentGameState):
     puntuacion = currentGameState.getScore()
     
     # Finalmente, valoramos el estado
-    evaluation = puntuacion
-    evaluation += 1 / (min_distancia_comida +1)   # +1 para evitar divisiones por 0
-    evaluation += 1 / (min_dist_asust +1)         # +1 para evitar divisiones por 0
-    evaluation -= 1 / (min_dist_no_asust +1)      # +1 para evitar divisiones por 0
-    evaluation += num_capsulas
+    evaluation = puntuacion                         # A mayor puntuación  -> Mejor
+    evaluation += 5 / (min_distancia_comida +0.1)   # A menor distancia   -> Mejor    | +0.1 para evitar divisiones por 0
+    evaluation += 3 / (min_dist_asust +1)           # A menor distancia   -> Mejor    | +1 para evitar divisiones por 0
+    evaluation -= 10 * min_dist_no_asust            # A mayor distancia   -> Mejor
+    evaluation -= 2 * len(newFood)                  # A mayor numero      -> Peor
+    evaluation -= 4 * num_capsulas                  # A mayor numero      -> Peor (queremos que las coma)
     
     return evaluation
 
