@@ -335,7 +335,7 @@ def check_perceptron(tracker):
                 "PerceptronModel.get_prediction() should return 1 or -1, not {}".format(
                 prediction))
 
-            expected_prediction = np.asscalar(np.where(np.dot(point, p.get_weights().data.T) >= 0, 1, -1))
+            expected_prediction = np.ndarray.item(np.where(np.dot(point, p.get_weights().data.T) >= 0, 1, -1))
             assert prediction == expected_prediction, (
                 "PerceptronModel.get_prediction() returned {}; expected {}".format(
                     prediction, expected_prediction))
@@ -442,7 +442,7 @@ def check_regression(tracker):
 
     train_loss = model.get_loss(nn.Constant(dataset.x), nn.Constant(dataset.y))
     verify_node(train_loss, 'loss', None, "RegressionModel.get_loss()")
-    train_loss = nn.as_scalar(train_loss)
+    train_loss = train_loss.data
 
     # Re-compute the loss ourselves: otherwise get_loss() could be hard-coded
     # to always return zero

@@ -56,10 +56,23 @@ class PerceptronClassifier:
         self.features = trainingData[0].keys()  # could be useful later
         # DO NOT ZERO OUT YOUR WEIGHTS BEFORE STARTING TRAINING, OR
         # THE AUTOGRADER WILL LIKELY DEDUCT POINTS.
+
         for iteration in range(self.max_iterations):
+            print("")
             print("Starting iteration ", iteration, "...")
             for i in range(len(trainingData)):  # training data
-                #pdb.set_trace()  # esto es un break point para que puedas comprobar el formato de los datos
+                #print(trainingData[i])
+                pred=util.Counter()
+                ##MODIFICAR ESTA PARTE QUE NO HACE EL SUMATORIO
+                for x in self.legalLabels:
+                    pred[x]=trainingData[i].__mul__(self.weights[x])
+                result=pred.argMax()
+
+
+                if result != trainingLabels[i]:
+                    self.weights[result] -= trainingData[i]
+                    self.weights[trainingLabels[i]] += trainingData[i]
+                 # esto es un break point para que puedas comprobar el formato de los datos
                 ########################################################################################
                 # 1. i es el indice de un ejemplo (un item, f(x) de un ejemplo) del conjunto de entrenamiento.
                 # 2. Asi pues, en cada vuelta de este loop se trata un solo ejemplo
@@ -70,17 +83,7 @@ class PerceptronClassifier:
                 #          Recordad tambien que es una clasificacion multiclase en este caso. Hay tantas clases como nos marca el atributo self.legalLabels
                 #########################################################################################
                 "*** YOUR CODE HERE ***"
-                
-                item = trainingData[i]
-                dot = 0
-                for f in range(len(self.features)):
-                    dot += self.weights[f].__mul__(item)
-                    
-                            
-                print(dot)
-                         
-        return 
-    
+
     def classify(self, data):
         """
         Classifies each datum as the label that most closely matches the prototype vector

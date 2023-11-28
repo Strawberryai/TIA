@@ -127,12 +127,12 @@ def enhancedPacmanFeatures(state, action):
 
     if minD != 9999:
         features["closest food"] = 1.0 / minD  # con esto te da 4
-        # features["closest food"] = minD#con esto te da 2 puntos
+        features["closest food"] = minD#con esto te da 2 puntos
     else:
         features["closest food"] = 2
 
-    # if features["closest food"]==0:
-    # pdb.set_trace()
+    if features["closest food"]==0:
+        pdb.set_trace()
 
     minD = 10000000000
     for ghost in state.getGhostPositions():

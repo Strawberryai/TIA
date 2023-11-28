@@ -28,7 +28,7 @@ class PerceptronModel(object):
         Deberiais obtener el producto escalar (o producto punto) que es "equivalente" a la distancia del coseno
         """
         "*** YOUR CODE HERE ***"
-
+        return nn.DotProduct(x, self.w)
 
 
 
@@ -40,9 +40,7 @@ class PerceptronModel(object):
         Returns: 1 or -1
         """
         "*** YOUR CODE HERE ***"
-
-
-
+        return 1 if ( nn.as_scalar(self.run(x)) >= 0 ) else -1
 
     def train(self, dataset):
         """
@@ -50,8 +48,28 @@ class PerceptronModel(object):
         Hasta que TODOS los ejemplos del train esten bien clasificados. Es decir, hasta que la clase predicha en se corresponda con la real en TODOS los ejemplos del train
         """
         "*** YOUR CODE HERE ***"
+        
+        converge = False
+        while not converge:
+            # Inicio de epoch
+            cambio = False
+            
+            for x, y in dataset.iterate_once(1):
+                # x es el vector de entrada e y es el gold
+                pred = self.get_prediction(x)
+                
+                y = nn.as_scalar(y)
+                if pred != y:
+                    cambio = True
+                    self.w.update( x, y )
+            
+            # Fin de epoch
+            if not cambio:
+                converge = True
+        
 
-
+        # Fin de entrenamiento
+        return
 
 
 
@@ -66,17 +84,16 @@ class RegressionModel(object):
     def __init__(self):
         # Initialize your model parameters here
         # For example:
-        # self.batch_size = 20
-        # self.w0 = nn.Parameter(1, 5)
-        # self.b0 = nn.Parameter(1, 5)
-        # self.w1 = nn.Parameter(5, 1)
-        # self.b1 = nn.Parameter(1, 1)
-        # self.lr = -0.01
-        #
-        "*** YOUR CODE HERE ***"
-
-
-
+        self.batch_size = 20
+        self.lr = -0.01
+        self.w0 = nn.Parameter(1, 12)
+        self.b0 = nn.Parameter(1, 12)
+        
+        self.w1 = nn.Parameter(12, 50)
+        self.b1 = nn.Parameter(1, 50)
+        
+        self.w2 = nn.Parameter(50, 1)
+        self.b2 = nn.Parameter(1, 1)
 
 
     def run(self, x):
@@ -90,11 +107,23 @@ class RegressionModel(object):
             Como es un modelo de regresion, cada valor y tambien tendra un unico valor
         """
         "*** YOUR CODE HERE ***"
-
-
-
-
-
+        #return nn.AddBias(nn.ReLU(nn.Linear(nn.AddBias(nn.ReLU(nn.Linear(x, self.w0)), self.b0), self.w1)), self.b1)
+    
+        o1 = nn.Linear(x, self.w0)
+        o1 = nn.AddBias(o1, self.b0)
+        o1 = nn.ReLU( o1 )
+        
+        
+        o2 = nn.Linear(o1, self.w1)
+        o2 = nn.AddBias(o2, self.b1)
+        o2 = nn.ReLU( o2 )
+        
+        o3 = nn.Linear(o2, self.w2)
+        o3 = nn.AddBias(o3, self.b2)
+        #o3 = nn.ReLU( o3 )
+        
+        return o3
+        
 
 
     def get_loss(self, x, y):
@@ -109,12 +138,8 @@ class RegressionModel(object):
                 ----> ES FACIL COPIA Y PEGA ESTO Y ANNADE LA VARIABLE QUE HACE FALTA PARA CALCULAR EL ERROR 
                 return nn.SquareLoss(self.run(x),ANNADE LA VARIABLE QUE ES NECESARIA AQUI), para medir el error, necesitas comparar el resultado de tu prediccion con .... que?
         """
-        "*** YOUR CODE HERE ***"
-
-
-
-
-
+        "*** YOUR CODE HERE ***"       
+        return nn.SquareLoss(self.run(x), y)
 
     def train(self, dataset):
         """
@@ -122,15 +147,30 @@ class RegressionModel(object):
         
         """
         
-        batch_size = self.batch_size
         total_loss = 100000
         while total_loss > 0.02:
             #ITERAR SOBRE EL TRAIN EN LOTES MARCADOS POR EL BATCH SIZE COMO HABEIS HECHO EN LOS OTROS EJERCICIOS
             #ACTUALIZAR LOS PESOS EN BASE AL ERROR loss = self.get_loss(x, y) QUE RECORDAD QUE GENERA
             #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
-
-            "*** YOUR CODE HERE ***"
-
+            t_loss = 0
+            i = 0
+            for x, y in dataset.iterate_once(self.batch_size):
+                # x es el vector de entrada e y es el gold               
+                loss = self.get_loss(x, y)
+                gradientes = nn.gradients(loss, [self.w0, self.w1])
+                
+                # Actualización
+                for i, wi in enumerate([self.w0, self.w1]):
+                    wi.update(gradientes[i], self.lr)
+                
+                i += 1
+                t_loss += loss.data
+                
+            total_loss = t_loss / i
+            print(total_loss)      
+        
+        # Fin de entrenamiento
+        input()
 
 
 
