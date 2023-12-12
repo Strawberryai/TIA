@@ -153,24 +153,24 @@ class RegressionModel(object):
             #ACTUALIZAR LOS PESOS EN BASE AL ERROR loss = self.get_loss(x, y) QUE RECORDAD QUE GENERA
             #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
             t_loss = 0
-            i = 0
+            w = 0
             for x, y in dataset.iterate_once(self.batch_size):
                 # x es el vector de entrada e y es el gold               
                 loss = self.get_loss(x, y)
-                gradientes = nn.gradients(loss, [self.w0, self.w1])
+                gradientes = nn.gradients(loss, [self.w0, self.w1, self.w2])
                 
                 # Actualización
-                for i, wi in enumerate([self.w0, self.w1]):
+                for i, wi in enumerate([self.w0, self.w1, self.w2]):
                     wi.update(gradientes[i], self.lr)
                 
-                i += 1
+                w += 1
                 t_loss += loss.data
                 
-            total_loss = t_loss / i
+            total_loss = t_loss / w
             print(total_loss)      
         
         # Fin de entrenamiento
-        input()
+        #input()
 
 
 
@@ -196,11 +196,26 @@ class DigitClassificationModel(object):
         # UN VALOR POR CADA CLASE
 
         output_size = 10 # TAMANO EQUIVALENTE AL NUMERO DE CLASES DADO QUE QUIERES OBTENER 10 CLASES
-        pixel_dim_size = 28
+        pixel_dim_size = 784
         pixel_vector_length = pixel_dim_size* pixel_dim_size
  
         "*** YOUR CODE HERE ***"
-
+        # La entrada es de 1x784 ya que hay 784 pixeles
+        
+        self.batch_size = 20
+        self.lr = -0.01
+        
+        n = 256
+        m = 128
+        
+        self.w0 = nn.Parameter(pixel_dim_size, n)
+        self.b0 = nn.Parameter(1, n)
+        
+        self.w1 = nn.Parameter(n, m)
+        self.b1 = nn.Parameter(1, m)
+        
+        self.w2 = nn.Parameter(m, output_size)
+        self.b2 = nn.Parameter(1, output_size)
      
 
     def run(self, x):
@@ -221,7 +236,20 @@ class DigitClassificationModel(object):
         "*** YOUR CODE HERE ***"
 
 
-
+        o1 = nn.Linear(x, self.w0)
+        o1 = nn.AddBias(o1, self.b0)
+        o1 = nn.ReLU( o1 )
+        
+        
+        o2 = nn.Linear(o1, self.w1)
+        o2 = nn.AddBias(o2, self.b1)
+        o2 = nn.ReLU( o2 )
+        
+        o3 = nn.Linear(o2, self.w2)
+        o3 = nn.AddBias(o3, self.b2)
+        #o3 = nn.ReLU( o3 )
+        
+        return o3
 
 
     def get_loss(self, x, y):
@@ -255,12 +283,24 @@ class DigitClassificationModel(object):
         NO LO TENEIS QUE IMPLEMENTAR, PERO SABED QUE EMPLEA EL RESULTADO DEL SOFTMAX PARA CALCULAR
         EL NUM DE EJEMPLOS DEL TRAIN QUE SE HAN CLASIFICADO CORRECTAMENTE 
         """
-        batch_size = self.batch_size
         while dataset.get_validation_accuracy() < 0.97:
             #ITERAR SOBRE EL TRAIN EN LOTES MARCADOS POR EL BATCH SIZE COMO HABEIS HECHO EN LOS OTROS EJERCICIOS
             #ACTUALIZAR LOS PESOS EN BASE AL ERROR loss = self.get_loss(x, y) QUE RECORDAD QUE GENERA
             #UNA FUNCION DE LA LA CUAL SE  PUEDE CALCULAR LA DERIVADA (GRADIENTE)
             "*** YOUR CODE HERE ***"
+            for x, y in dataset.iterate_once(self.batch_size):
+                # x es el vector de entrada e y es el gold               
+                loss = self.get_loss(x, y)
+                gradientes = nn.gradients(loss, [self.w0, self.w1, self.w2])
+                
+                # Actualización
+                for i, wi in enumerate([self.w0, self.w1, self.w2]):
+                    wi.update(gradientes[i], self.lr)
+                
+                i += 1  
+        
+        # Fin de entrenamiento
+        #input()
 
 
 
